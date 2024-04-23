@@ -11,11 +11,11 @@ const schema = {
   },
   port: {
     type: 'string',
-    default: '6782',
+    default: '7782',
   },
   rmq: {
     type: 'string',
-    default: '',
+    default: 'amqp://localhost',
   },
   cron: {
     type: 'boolean',

@@ -21,7 +21,7 @@ ipc.on('settings-saved', function (event, data) {
 $(document).ready(function () {
   $('#save-settings').click(function () {
     ipc.send('save-settings', {
-      autoLaunch: $('#auto-launch').is(':checked'),
+      autoLaunch: $('#auto-launch').is(':checked') ? 'active' : 'deactive',
       port: $('input[type="port"]').val(),
       rmq: $('input[type="rmq"]').val(),
       url: $('input[type="url"]').val(),

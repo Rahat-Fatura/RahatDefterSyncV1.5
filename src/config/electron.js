@@ -29,17 +29,18 @@ const initialize = (expressApp) => {
     mainWindow.removeAllListeners('close');
   });
 
-  ipcMain.on('save-settings', (event, data) => {
+  ipcMain.on('save-settings', async (event, data) => {
     try {
       const { url, uuid, port, rmq, path, autoLaunch } = data;
       if (url) config.set('url', url);
       if (uuid) config.set('uuid', uuid);
       if (port) config.set('port', port);
       if (rmq) config.set('rmq', rmq);
-      if (path) config.set('path', path);
-      if (autoLaunch) {
-        if (autoLaunch === 'true') appAutoLauncher.enable();
-        else appAutoLauncher.disable();
+      if (path) config.set('path', path.replaceAll(/\\/g, '/'));
+      if (autoLaunch === 'active') {
+        if (!(await appAutoLauncher.isEnabled())) appAutoLauncher.enable();
+      } else if (autoLaunch === 'deactive') {
+        if (await appAutoLauncher.isEnabled()) appAutoLauncher.disable();
       }
       mainWindow.webContents.send('settings-saved', { status: 'success' });
     } catch (error) {
