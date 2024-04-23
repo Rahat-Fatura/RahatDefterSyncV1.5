@@ -1,0 +1,25 @@
+const axios = require('axios');
+const config = require('../config/config');
+
+const url = config.get('url');
+const backend = axios.create({
+  baseURL: url,
+});
+
+backend.interceptors.request.use((request) => {
+  request.headers['Content-Type'] = 'application/json';
+  request.headers['api-key'] = config.get('uuid');
+  return request;
+});
+
+backend.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNREFUSED') {
+      throw new Error('Servise erişilemiyor.');
+    }
+    throw new Error(JSON.stringify(error.response.data));
+  },
+);
+
+module.exports = backend;

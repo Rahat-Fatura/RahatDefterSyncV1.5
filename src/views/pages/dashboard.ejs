@@ -1,0 +1,90 @@
+<%- include('../partials/doctype.ejs') %>
+
+<head>
+    <%- include('../partials/header') %>
+    <title><%= page.display %></title>
+    <%- include('../partials/css') %>
+</head>
+
+
+<!--begin::Body-->
+
+<body id="kt_body" class="header-fixed">
+    <!--begin::Theme mode setup on page load-->
+    <script>
+        var defaultThemeMode = "light";
+        var themeMode;
+        if (document.documentElement) {
+            if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+                themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+            } else {
+                if (localStorage.getItem("data-bs-theme") !== null) {
+                    themeMode = localStorage.getItem("data-bs-theme");
+                } else {
+                    themeMode = defaultThemeMode;
+                }
+            }
+            if (themeMode === "system") {
+                themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", themeMode);
+        }
+    </script>
+    <!--end::Theme mode setup on page load-->
+    <!--begin::Main-->
+    <!--begin::Root-->
+    <div class="d-flex flex-column flex-root">
+        <!--begin::Page-->
+        <div class="page d-flex flex-row flex-column-fluid">
+            <%- include('../partials/sidebar') %>
+            <!--begin::Wrapper-->
+            <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+                <%- include('../partials/navbar') %>
+                <!--begin::Content-->
+                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                    <!--begin::Container-->
+                    <div class="container-xxl" id="kt_content_container">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="py-10">
+                                    <!--begin::Heading-->
+                                    <h1 class="anchor fw-bold mb-5" id="form-control" data-kt-scroll-offset="50">Ana Sayfa</h1>
+                                    <div class="py-5">
+                                        <div class="rounded border p-10">
+                                            <div class="mb-2">
+                                                <a href="#" id="rmq-status-pulse" class="btn btn-icon pulse me-2">
+                                                    <i class="fa-solid fa-bolt"></i>
+                                                    <span class="pulse-ring border-5"></span>
+                                                </a>
+                                                Servis bağlantı durumu:
+                                                <span id="rmq-status-desc" class="badge text-dark">Bilgi bekleniyor...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end::Block-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Container-->
+                </div>
+                <%- include('../partials/footer') %>
+            </div>
+        </div>
+        <!--end::Page-->
+    </div>
+
+    <script>
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
+    </script>
+    <%- include('../partials/javascript') %>
+    <script src="assets/js/views/dashboard.js"></script>
+    <script>
+        if (window.module) module = window.module;
+    </script>
+</body>
+
+</html>
