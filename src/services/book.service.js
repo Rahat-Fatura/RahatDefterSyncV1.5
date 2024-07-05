@@ -1,7 +1,10 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-continue */
 /* eslint-disable security/detect-non-literal-fs-filename */
 const fs = require('fs');
 const crypto = require('crypto');
 const mime = require('mime-types');
+const AdmZip = require('adm-zip');
 const logger = require('../config/logger');
 const backendService = require('./rahatdefter.service');
 
@@ -25,40 +28,43 @@ const listFilesRecursiveByMimeType = async (path, mimeTypes) => {
   return fileList;
 };
 
-const fileToBase64 = (filePath) => fs.readFileSync(filePath).toString('base64');
-const b64ToHash = (b64) => crypto.createHash('sha256').update(Buffer.from(b64, 'base64')).digest('hex');
-
 const checkAndSendAllFilesFromPath = async (path) => {
   try {
-    const fileList = await listFilesRecursiveByMimeType(path, ['application/zip', 'application/xml']);
-    const arrayForCheckingFiles = [];
-    const arrayForSendingFiles = [];
+    const allFileList = await listFilesRecursiveByMimeType(path, ['application/zip']);
+    logger.info(`checkAndSendAllFilesFromPath :>> Started, allFileListLength: ${allFileList.length}`);
     // eslint-disable-next-line no-restricted-syntax
-    for (const file of fileList) {
-      const fileB64 = fileToBase64(file);
-      const fileHash = b64ToHash(fileB64);
-      arrayForCheckingFiles.push({ hash: fileHash, path: file });
-      arrayForSendingFiles.push({ file: fileB64, path: file });
-    }
-    logger.info(`İşlem başladı. Toplam tespit edilen dosya sayısı: ${arrayForCheckingFiles.length}`);
-    let didNotSendFiles = [];
-    try {
-      didNotSendFiles = (await backendService.checkFilesFromService({ array: arrayForCheckingFiles })).data;
-    } catch (error) {
-      logger.error(`didNotSendFilesError :>> ${error}`);
-    }
-    logger.info(`Gönderilecek olan dosya sayısı: ${didNotSendFiles.length}`);
-    const didNotSendFilesPaths = didNotSendFiles.map((file) => file.path);
-    const filesToSend = arrayForSendingFiles.filter((file) => didNotSendFilesPaths.includes(file.path));
-    // eslint-disable-next-line no-restricted-syntax
-    for (const file of filesToSend) {
+    for (const zipPath of allFileList) {
+      const zip = new AdmZip(zipPath);
+      const zipEntries = zip.getEntries();
+      if (zipEntries.length !== 1) {
+        logger.error(`zipEntriesLengthError :>> ${zipPath}, length: ${zipEntries.length}`);
+        continue;
+      }
+      const file = zipEntries[0];
+      if (!file.entryName.endsWith('.xml')) {
+        logger.error(`zipEntriesXmlError :>> ${zipPath}, entryName: ${file.entryName}`);
+        continue;
+      }
+      const content = zip.readAsText(file);
+      const hash = crypto.createHash('sha256').update(content).digest('hex');
+      const filename = zipPath.split('/').pop().split('\\').pop();
+      const mimetype = mime.lookup(filename);
       try {
-        // eslint-disable-next-line no-await-in-loop
-        await backendService.sendFileToService({ fileB64: file.file, filePath: file.path });
+        await backendService.checkFileFromService({ filename, mimetype, hash });
+        await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
       } catch (error) {
-        logger.error(`sendFileToServiceError :>> filename: ${file.path}, error: ${error}`);
+        if (error.response.status === 404) {
+          try {
+            await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
+          } catch (e) {
+            if (e.response.status !== 404 && e.response.status !== 422)
+              logger.error(`sendFileToServiceError :>> ${zipPath}, error: ${e.response.data.message}`);
+          }
+        } else if (error.response.status !== 404 && error.response.status !== 422)
+          logger.error(`sendFileToServiceError :>> ${zipPath}, error: ${error.response.data.message}`);
       }
     }
+    logger.info('checkAndSendAllFilesFromPath :>> Finished');
   } catch (error) {
     logger.error(`checkAndSendAllFilesFromPath :>> ${error}`);
   }

@@ -1,6 +1,6 @@
 {
   "name": "rahatdeftersync",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "An app for rahatsistem.com.tr",
   "main": "src/index.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "release": "electron-builder --win -p always"
   },
   "dependencies": {
+    "adm-zip": "^0.5.14",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.3",
     "auto-launch": "^5.0.6",

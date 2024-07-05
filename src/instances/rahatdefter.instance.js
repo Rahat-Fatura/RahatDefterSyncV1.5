@@ -8,7 +8,7 @@ const backend = axios.create({
 
 backend.interceptors.request.use((request) => {
   request.headers['Content-Type'] = 'application/json';
-  request.headers['api-key'] = config.get('uuid');
+  request.headers['x-api-key'] = config.get('uuid');
   return request;
 });
 
@@ -18,7 +18,7 @@ backend.interceptors.response.use(
     if (error.code === 'ECONNREFUSED') {
       throw new Error('Servise erişilemiyor.');
     }
-    throw new Error(JSON.stringify(error.response.data));
+    throw error;
   },
 );
 

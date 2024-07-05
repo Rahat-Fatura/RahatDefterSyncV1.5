@@ -3,7 +3,7 @@ const Store = require('electron-store');
 const schema = {
   url: {
     type: 'string',
-    default: 'https://localservice.rahatsistem.com.tr/v1',
+    default: 'http://rs.dev.com:3102',
   },
   uuid: {
     type: 'string',

@@ -10,7 +10,19 @@ const checkFilesFromService = async ({ array }) => {
   return response.data;
 };
 
+const checkFileFromService = async ({ filename, mimetype, hash }) => {
+  const response = await backend.post('/api/upload/check.file', { filename, mimetype, hash });
+  return response.data;
+};
+
+const sendFileToServiceV2 = async ({ filename, mimetype, data }) => {
+  const response = await backend.post('/api/upload/book.b64', { filename, mimetype, data });
+  return response.data;
+};
+
 module.exports = {
   sendFileToService,
   checkFilesFromService,
+  checkFileFromService,
+  sendFileToServiceV2,
 };
