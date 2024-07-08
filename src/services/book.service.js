@@ -36,32 +36,37 @@ const checkAndSendAllFilesFromPath = async (path) => {
     for (const zipPath of allFileList) {
       const zip = new AdmZip(zipPath);
       const zipEntries = zip.getEntries();
-      if (zipEntries.length !== 1) {
-        logger.error(`zipEntriesLengthError :>> ${zipPath}, length: ${zipEntries.length}`);
-        continue;
-      }
-      const file = zipEntries[0];
-      if (!file.entryName.endsWith('.xml')) {
-        logger.error(`zipEntriesXmlError :>> ${zipPath}, entryName: ${file.entryName}`);
-        continue;
-      }
-      const content = zip.readAsText(file);
-      const hash = crypto.createHash('sha256').update(content).digest('hex');
-      const filename = zipPath.split('/').pop().split('\\').pop();
-      const mimetype = mime.lookup(filename);
-      try {
-        await backendService.checkFileFromService({ filename, mimetype, hash });
-        await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
-      } catch (error) {
-        if (error.response.status === 404) {
-          try {
-            await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
-          } catch (e) {
-            if (e.response.status !== 404 && e.response.status !== 422)
-              logger.error(`sendFileToServiceError :>> ${zipPath}, error: ${e.response.data.message}`);
-          }
-        } else if (error.response.status !== 404 && error.response.status !== 422)
-          logger.error(`sendFileToServiceError :>> ${zipPath}, error: ${error.response.data.message}`);
+      // eslint-disable-next-line no-restricted-syntax
+      for (const file of zipEntries) {
+        if (!file.entryName.endsWith('.xml')) {
+          logger.error(`zipEntriesXmlError :>> ${zipPath}, entryName: ${file.entryName}`);
+          continue;
+        }
+        const content = zip.readAsText(file);
+        const hash = crypto.createHash('sha256').update(content).digest('hex');
+        const filename = `${file.entryName.split('.').slice(0, -1).join('.')}.zip`;
+        const mimetype = 'application/zip';
+        try {
+          await backendService.checkFileFromService({ filename, mimetype, hash });
+          const fileZipped = new AdmZip();
+          fileZipped.addFile(file.entryName, Buffer.alloc(content.length, content), '');
+          const data = fileZipped.toBuffer().toString('base64');
+          await backendService.sendFileToServiceV2({ filename, mimetype, data });
+        } catch (error) {
+          if (error.response.status === 404) {
+            try {
+              await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
+            } catch (e) {
+              if (e.response.status !== 404 && e.response.status !== 422)
+                logger.error(
+                  `sendFileToServiceError :>> ${zipPath}, inner filename: ${file.entryName} error: ${e.response.data.message}`,
+                );
+            }
+          } else if (error.response.status !== 404 && error.response.status !== 422)
+            logger.error(
+              `sendFileToServiceError :>> ${zipPath}, inner filename: ${file.entryName}, error: ${error.response.data.message}`,
+            );
+        }
       }
     }
     logger.info('checkAndSendAllFilesFromPath :>> Finished');
