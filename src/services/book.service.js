@@ -49,7 +49,7 @@ const checkAndSendAllFilesFromPath = async (path) => {
         try {
           await backendService.checkFileFromService({ filename, mimetype, hash });
           const fileZipped = new AdmZip();
-          fileZipped.addFile(file.entryName, Buffer.alloc(content.length, content), '');
+          fileZipped.addFile(file.entryName, Buffer.from(content));
           const data = fileZipped.toBuffer().toString('base64');
           await backendService.sendFileToServiceV2({ filename, mimetype, data });
         } catch (error) {
