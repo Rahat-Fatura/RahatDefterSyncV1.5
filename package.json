@@ -1,6 +1,6 @@
 {
   "name": "rahatdeftersync",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An app for rahatsistem.com.tr",
   "main": "src/index.js",
   "scripts": {
