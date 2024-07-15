@@ -8,6 +8,61 @@ const AdmZip = require('adm-zip');
 const logger = require('../config/logger');
 const backendService = require('./rahatdefter.service');
 
+const sendXmlContentToService = async ({ path, content, filename, fileEntryName }) => {
+  const hash = crypto.createHash('sha256').update(content).digest('hex');
+  const mimetype = 'application/zip';
+  let zipBuffer;
+  try {
+    await backendService.checkFileFromService({ filename, mimetype, hash });
+    const fileZipped = new AdmZip();
+    fileZipped.addFile(fileEntryName, Buffer.from(content));
+    zipBuffer = fileZipped.toBuffer().toString('base64');
+    await backendService.sendFileToServiceV2({ filename, mimetype, data: zipBuffer });
+  } catch (error) {
+    if (error.response.status === 404) {
+      try {
+        if (!zipBuffer) {
+          const fileZipped = new AdmZip();
+          fileZipped.addFile(fileEntryName, Buffer.from(content));
+          zipBuffer = fileZipped.toBuffer().toString('base64');
+        }
+        await backendService.sendFileToServiceV2({ filename, mimetype, data: zipBuffer });
+      } catch (e) {
+        if (e.response.status !== 404 && e.response.status !== 422)
+          logger.error(
+            `sendFileToServiceErrorAfter404 :>> ${path}, inner filename: ${fileEntryName} error: ${e.response.data.message}`,
+          );
+      }
+    } else if (error.response.status !== 404 && error.response.status !== 422)
+      logger.error(
+        `sendFileToServiceError :>> ${path}, inner filename: ${fileEntryName}, error: ${error.response.data.message}`,
+      );
+  }
+};
+
+const exportAndSendFromZip = async (zip, zipPath) => {
+  const zipEntries = zip.getEntries();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const file of zipEntries) {
+    if (file.isDirectory) continue;
+    if (!file.name.endsWith('.xml') && !file.name.endsWith('.zip')) continue;
+    if (file.name.endsWith('.zip')) {
+      try {
+        const zb = new AdmZip(file.getData());
+        await exportAndSendFromZip(zb, `${zipPath}/${file.entryName}`);
+      } catch (error) {
+        logger.error(`exportAndSendFromZipError :>> ${zipPath}/${file.entryName}, error: ${error}`);
+      }
+    } else {
+      const xmlPath = `${zipPath}/${file.entryName}`;
+      const content = zip.readAsText(file);
+      const filename = `${file.entryName.split('.').slice(0, -1).join('.')}.zip`;
+      const fileEntryName = file.name;
+      await sendXmlContentToService({ path: xmlPath, content, filename, fileEntryName });
+    }
+  }
+};
+
 const listFilesRecursiveByMimeType = async (path, mimeTypes) => {
   const files = fs.readdirSync(path);
   let fileList = [];
@@ -28,50 +83,34 @@ const listFilesRecursiveByMimeType = async (path, mimeTypes) => {
   return fileList;
 };
 
-const checkAndSendAllFilesFromPath = async (path) => {
-  try {
-    const allFileList = await listFilesRecursiveByMimeType(path, ['application/zip']);
-    logger.info(`checkAndSendAllFilesFromPath :>> Started, allFileListLength: ${allFileList.length}`);
-    // eslint-disable-next-line no-restricted-syntax
-    for (const zipPath of allFileList) {
-      const zip = new AdmZip(zipPath);
-      const zipEntries = zip.getEntries();
+const checkAndSendAllFilesFromPath = async (paths) => {
+  logger.info(`checkAndSendAllFilesFromPath :>> Started with ${paths.length} paths`);
+  // eslint-disable-next-line no-restricted-syntax
+  for (const path of paths) {
+    logger.info(`checkAndSendAllFilesFromPath :>> Started, path: ${path}`);
+    try {
+      const allFileList = await listFilesRecursiveByMimeType(path, ['application/zip', 'application/xml', 'text/xml']);
+      logger.info(`checkAndSendAllFilesFromPath :>> Started, allFileListLength from ${path}: ${allFileList.length}`);
       // eslint-disable-next-line no-restricted-syntax
-      for (const file of zipEntries) {
-        if (!file.entryName.endsWith('.xml')) {
-          logger.error(`zipEntriesXmlError :>> ${zipPath}, entryName: ${file.entryName}`);
-          continue;
-        }
-        const content = zip.readAsText(file);
-        const hash = crypto.createHash('sha256').update(content).digest('hex');
-        const filename = `${file.entryName.split('.').slice(0, -1).join('.')}.zip`;
-        const mimetype = 'application/zip';
+      for (const fp of allFileList) {
         try {
-          await backendService.checkFileFromService({ filename, mimetype, hash });
-          const fileZipped = new AdmZip();
-          fileZipped.addFile(file.entryName, Buffer.from(content));
-          const data = fileZipped.toBuffer().toString('base64');
-          await backendService.sendFileToServiceV2({ filename, mimetype, data });
+          if (fp.endsWith('.xml')) {
+            const content = fs.readFileSync(fp, 'utf8');
+            const filename = `${fp.split('/').slice(-1)[0].split('.').slice(0, -1).join('.')}.zip`;
+            const fileEntryName = fp.split('/').slice(-1)[0];
+            await sendXmlContentToService({ path: fp, content, filename, fileEntryName });
+          } else {
+            const zb = new AdmZip(fp);
+            await exportAndSendFromZip(zb, fp);
+          }
         } catch (error) {
-          if (error.response.status === 404) {
-            try {
-              await backendService.sendFileToServiceV2({ filename, mimetype, data: zip.toBuffer().toString('base64') });
-            } catch (e) {
-              if (e.response.status !== 404 && e.response.status !== 422)
-                logger.error(
-                  `sendFileToServiceError :>> ${zipPath}, inner filename: ${file.entryName} error: ${e.response.data.message}`,
-                );
-            }
-          } else if (error.response.status !== 404 && error.response.status !== 422)
-            logger.error(
-              `sendFileToServiceError :>> ${zipPath}, inner filename: ${file.entryName}, error: ${error.response.data.message}`,
-            );
+          logger.error(`exportAndSendFromZipError :>> ${fp}, error: ${error}`);
         }
       }
+      logger.info('checkAndSendAllFilesFromPath :>> Finished');
+    } catch (error) {
+      logger.error(`checkAndSendAllFilesFromPath :>> ${error}`);
     }
-    logger.info('checkAndSendAllFilesFromPath :>> Finished');
-  } catch (error) {
-    logger.error(`checkAndSendAllFilesFromPath :>> ${error}`);
   }
 };
 
