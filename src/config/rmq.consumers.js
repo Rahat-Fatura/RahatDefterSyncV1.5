@@ -16,7 +16,7 @@ const consumeTunnel = async () => {
   channel.consume(queue, async (data) => {
     const msg = data.content.toString();
     logger.info(`rmq-consumer :>> Received  message -> ${msg}`);
-    bookService.checkAndSendAllFilesFromPath(config.get('path'));
+    bookService.checkAndSendAllFilesFromPath(config.get('path').split(';'));
     return channel.ack(data);
   });
 };
