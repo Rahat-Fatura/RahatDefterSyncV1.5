@@ -56,7 +56,7 @@ const exportAndSendFromZip = async (zip, zipPath) => {
     } else {
       const xmlPath = `${zipPath}/${file.entryName}`;
       const content = zip.readAsText(file);
-      const filename = `${file.entryName.split('.').slice(0, -1).join('.')}.zip`;
+      const filename = `${file.name.split('.').slice(0, -1).join('.')}.zip`;
       const fileEntryName = file.name;
       await sendXmlContentToService({ path: xmlPath, content, filename, fileEntryName });
     }
@@ -87,7 +87,7 @@ const checkAndSendAllFilesFromPath = async (paths) => {
   logger.info(`checkAndSendAllFilesFromPath :>> Started with ${paths.length} paths`);
   // eslint-disable-next-line no-restricted-syntax
   for (const path of paths) {
-    logger.info(`checkAndSendAllFilesFromPath :>> Started, path: ${path}`);
+    logger.info(`checkAndSendAllFilesFromPath :>> Started for ${path}`);
     try {
       const allFileList = await listFilesRecursiveByMimeType(path, ['application/zip', 'application/xml', 'text/xml']);
       logger.info(`checkAndSendAllFilesFromPath :>> Started, allFileListLength from ${path}: ${allFileList.length}`);
@@ -107,7 +107,7 @@ const checkAndSendAllFilesFromPath = async (paths) => {
           logger.error(`exportAndSendFromZipError :>> ${fp}, error: ${error}`);
         }
       }
-      logger.info('checkAndSendAllFilesFromPath :>> Finished');
+      logger.info(`checkAndSendAllFilesFromPath :>> Finished for ${path}`);
     } catch (error) {
       logger.error(`checkAndSendAllFilesFromPath :>> ${error}`);
     }
