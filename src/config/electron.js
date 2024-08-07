@@ -89,9 +89,6 @@ const initialize = (expressApp) => {
       mainWindow.webContents.send('settings-saved', { status: 'error', error });
     }
   });
-  ipcMain.on('check-version', () => {
-    logger.info('Checking version...');
-  });
 };
 
 module.exports = {

@@ -11,7 +11,7 @@
     "prettier": "prettier --check **/*.js",
     "prettier:fix": "prettier --write **/*.js",
     "build": "electron-builder --win --ia32 --x64",
-    "release": "electron-builder --win -p always"
+    "release": "electron-builder --win --ia32 --x64 -p always"
   },
   "dependencies": {
     "adm-zip": "^0.5.14",
@@ -60,7 +60,8 @@
     "productName": "RahatDefterSync",
     "publish": [
       {
-        "provider": "github"
+        "provider": "github",
+        "releaseType": "release"
       }
     ],
     "win": {
