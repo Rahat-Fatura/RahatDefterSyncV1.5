@@ -20,7 +20,7 @@ connection.on('disconnect', (err) => {
     const window = BrowserWindow.getAllWindows()[0];
     window.webContents.send('rmq-status', { status: 'error', error: err });
   });
-  logger.error(`Disconnected from RabbitMQ :>> ${err}`);
+  logger.error(`Disconnected from RabbitMQ :>> ${JSON.stringify(err)}`);
 });
 connection.on('error', (err) => {
   ipcMain.removeAllListeners('check-rmq');
@@ -28,7 +28,7 @@ connection.on('error', (err) => {
     const window = BrowserWindow.getAllWindows()[0];
     window.webContents.send('rmq-status', { status: 'error', error: err });
   });
-  logger.error(`Error from RabbitMQ :>> ${err}`);
+  logger.error(`Error from RabbitMQ :>> ${JSON.stringify(err)}`);
 });
 connection.on('connect', () => {
   ipcMain.removeAllListeners('check-rmq');

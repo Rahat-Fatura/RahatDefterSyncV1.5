@@ -7,10 +7,8 @@
 </head>
 
 
-<!--begin::Body-->
 
 <body id="kt_body" class="header-fixed">
-    <!--begin::Theme mode setup on page load-->
     <script>
         var defaultThemeMode = "light";
         var themeMode;
@@ -30,29 +28,28 @@
             document.documentElement.setAttribute("data-bs-theme", themeMode);
         }
     </script>
-    <!--end::Theme mode setup on page load-->
-    <!--begin::Main-->
-    <!--begin::Root-->
     <div class="d-flex flex-column flex-root">
-        <!--begin::Page-->
         <div class="page d-flex flex-row flex-column-fluid">
             <%- include('../partials/sidebar') %>
-            <!--begin::Wrapper-->
             <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
                 <%- include('../partials/navbar') %>
-                <!--begin::Content-->
                 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-                    <!--begin::Container-->
                     <div class="container-xxl" id="kt_content_container">
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <div class="py-10">
-                                    <!--begin::Heading-->
                                     <h1 class="anchor fw-bold mb-5" id="form-control" data-kt-scroll-offset="50">Tanımlamalar</h1>
-                                    <!--end::Block-->
-                                    <!--begin::Block-->
                                     <div class="py-5">
                                         <div class="rounded border p-10">
+                                            <div class="d-flex flex-wrap align-items-center mb-5">
+                                                <div id="version">
+                                                    <div class="fs-6 fw-bold mb-1">Uygulama Sürümü</div>
+                                                    <div class="fw-semibold text-gray-600">v<%= version %></div>
+                                                </div>
+                                                <div id="version-button" class="ms-auto">
+                                                    <button class="btn btn-light btn-active-light-primary">Güncellemeleri Denetle</button>
+                                                </div>
+                                            </div>
                                             <div class="mb-2">
                                                 <label class="form-label">Servis</label>
                                                 <input type="url" class="form-control" placeholder="<%- url ? '<secret>' : '' %>">
@@ -70,8 +67,12 @@
                                                 <input type="port" class="form-control" value="<%= port %>">
                                             </div>
                                             <div class="mb-4">
-                                                <label class="form-label">Klasör Konumu</label>
+                                                <label class="form-label">Klasör Konumu (Farklı klasör konumlarını ; ile ayırınız)</label>
                                                 <input type="path" class="form-control" value="<%= path %>">
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="form-label">Hariç tutulacak anahtar kelimeler (; işareti ile ayırınız)</label>
+                                                <input type="excludeKeys" class="form-control" value="<%= excludeKeys %>">
                                             </div>
                                             <div class="mb-5">
                                                 <div class="form-check form-switch form-check-custom form-check-success form-check-solid">
@@ -92,17 +93,14 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!--end::Block-->
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!--end::Container-->
                 </div>
                 <%- include('../partials/footer') %>
             </div>
         </div>
-        <!--end::Page-->
     </div>
 
     <script>

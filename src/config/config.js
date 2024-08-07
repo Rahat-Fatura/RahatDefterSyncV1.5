@@ -3,7 +3,7 @@ const Store = require('electron-store');
 const schema = {
   url: {
     type: 'string',
-    default: 'http://rs.dev.com:3102',
+    default: 'https://saklama.rahatsistem.com.tr',
   },
   uuid: {
     type: 'string',
@@ -15,13 +15,17 @@ const schema = {
   },
   rmq: {
     type: 'string',
-    default: 'amqp://localhost',
+    default: 'amqp://book_app_user:Kgg8hlFV9F7sUBtO6VJeU1Rh@178.18.243.217:5672/book_coms',
   },
   cron: {
     type: 'boolean',
     default: false,
   },
   path: {
+    type: 'string',
+    default: '',
+  },
+  excludeKeys: {
     type: 'string',
     default: '',
   },

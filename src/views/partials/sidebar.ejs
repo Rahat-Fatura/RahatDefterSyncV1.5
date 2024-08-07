@@ -58,6 +58,20 @@
                                 </a>
                                 <!--end:Menu link-->
                         </div>
+                        <div class="menu-item">
+                            <!--begin:Menu link-->
+                            <% if (page.menu === 'logs') { %>
+                            <a class="menu-link active" href="/logs">
+                                <% } else { %>
+                                <a class="menu-link" href="/logs">
+                                    <% } %>
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">Konsol</span>
+                                </a>
+                                <!--end:Menu link-->
+                        </div>
                         <!--end:Menu item-->
                     </div>
                     <!--end:Menu sub-->

@@ -9,6 +9,23 @@ const config = require('../config/config');
 const isMac = process.platform === 'darwin';
 autoUpdater.logger = logger;
 
+const createSplashWindow = () => {
+  const splashWindow = new BrowserWindow({
+    width: 1200,
+    height: 400,
+    center: true,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+  splashWindow.loadFile(path.resolve(__dirname, '../public/splash.html'));
+  return splashWindow;
+};
+
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 1400,
@@ -16,6 +33,7 @@ const createWindow = () => {
     center: true,
     frame: true,
     hasShadow: true,
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -268,6 +286,7 @@ const ipcListeners = (mainWindow) => {
 };
 
 module.exports = {
+  createSplashWindow,
   createWindow,
   createTray,
   createMenu,

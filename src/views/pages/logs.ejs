@@ -1,0 +1,85 @@
+<%- include('../partials/doctype.ejs') %>
+
+<head>
+    <%- include('../partials/header') %>
+    <title><%= page.display %></title>
+    <%- include('../partials/css') %>
+</head>
+
+
+
+<body id="kt_body" class="header-fixed">
+    <script>
+        var defaultThemeMode = "light";
+        var themeMode;
+        if (document.documentElement) {
+            if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+                themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+            } else {
+                if (localStorage.getItem("data-bs-theme") !== null) {
+                    themeMode = localStorage.getItem("data-bs-theme");
+                } else {
+                    themeMode = defaultThemeMode;
+                }
+            }
+            if (themeMode === "system") {
+                themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", themeMode);
+        }
+    </script>
+    <div class="d-flex flex-column flex-root">
+        <div class="page d-flex flex-row flex-column-fluid">
+            <%- include('../partials/sidebar') %>
+            <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+                <%- include('../partials/navbar') %>
+                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                    <div class="container-xxl" id="kt_content_container">
+                        <div class="card pt-4 ">
+                            <div class="card-header border-0">
+                                <div class="card-title">
+                                    <h2>Hareket Kayıtları</h2>
+                                </div>
+                                <div class="card-toolbar">
+
+                                    <div class="form-check form-switch form-check-custom form-check-solid me-5">
+                                        <input class="form-check-input" type="checkbox" value="" id="keep-logging" checked="checked" />
+                                        <label class="form-check-label" for="keep-logging">
+                                            Güncel hareketler gelsin
+                                        </label>
+                                    </div>
+                                    <button id="open-logfolder" type="button" class="btn btn-sm btn-light-primary">
+                                        <i class="fa fa-folder"></i>
+                                        Log Klasörünü Aç
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body py-0">
+                                <div class="table-responsive">
+                                    <table class="table align-middle table-row-dashed fw-semibold text-gray-600 fs-6 gy-5" id="kt_table_customers_logs">
+                                        <tbody id="logs-table"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <%- include('../partials/footer') %>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
+    </script>
+    <%- include('../partials/javascript') %>
+    <script src="assets/js/views/logs.js"></script>
+    <script>
+        if (window.module) module = window.module;
+    </script>
+</body>
+
+</html>
