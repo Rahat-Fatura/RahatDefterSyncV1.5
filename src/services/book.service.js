@@ -85,11 +85,11 @@ const listFilesRecursiveByMimeType = async (path, mimeTypes) => {
 };
 
 const isValidPath = (path) => {
+  if (!config.get('excludeKeys')) return true;
   const excludePaths = config.get('excludeKeys').split(';');
   for (let i = 0; i < excludePaths.length; i += 1) {
-    if (path.includes(excludePaths[i])) {
-      return false;
-    }
+    if (!excludePaths[i]) continue;
+    if (path.toLocaleLowerCase('tr-TR').includes(excludePaths[i].toLocaleLowerCase('tr-TR'))) return false;
   }
   return true;
 };
